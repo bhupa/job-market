@@ -14,7 +14,14 @@ const userSchema = new mongoose.Schema({
     password: {
         type: String,
         required: true
+    },
+    user_type: {
+        type: String,
+        enum: ['company', 'jobseeker'],
+        required: true
     }
+},{
+    timestamps: true
 });
 
 // Pre-save hook to hash password

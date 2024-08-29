@@ -3,14 +3,14 @@ const express = require('express');
 const router = express.Router();
 const validate = require('../middleware/validate');
 const userController = require('../controllers/userController');
-const { registerUserValidators } = require('../validators/userValidators');
-const {loginValidators } = require('../validators/loginValidators');
+const { registerUserValidators } = require('../validators/auth/userValidators');
+const {loginValidators } = require('../validators/auth/loginValidators');
 const authMiddleware = require('../middleware/authMiddleware');
 const TokenBlacklist = require('../models/TokenBlacklist');
 const jwt = require('jsonwebtoken');
 
-router.post('/register', validate(registerUserValidators), userController.registerUser);
-router.post('/login',validate(loginValidators), userController.loginUser);
+router.post('/register',validate( registerUserValidators), userController.registerUser);
+router.post('/login',loginValidators, userController.loginUser);
 
 router.get('/user/:email',authMiddleware, userController.getUserByEmail);
 router.get('/user/id/:id',authMiddleware, userController.getUserById);  // Ensure this is the correct route
