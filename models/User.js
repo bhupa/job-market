@@ -42,6 +42,29 @@ userSchema.virtual("jobseeker", {
   justOne: true,
 });
 // Pre-save hook to hash password
+
+userSchema.statics.fetchUserData = async function (id) {
+    try {
+      const user = await this.findById(id).lean();
+  
+      if (!user) throw new Error('User not found');
+  
+      let populatedUser;
+  
+      if (user.user_type === 'company') {
+        populatedUser = await this.findById(id).populate('company').lean().exec();
+      } else if (user.user_type === 'jobseeker') {
+        populatedUser = await this.findById(id).populate('jobseeker').lean().exec();
+      } else {
+        populatedUser = user; // Return the plain user if no user_type matches
+      }
+  
+      return populatedUser;
+    } catch (error) {
+      console.error('Error fetching user data:', error.message);
+      throw error; // Re-throw error for handling by the caller
+    }
+  };
 userSchema.pre("save", async function (next) {
   try {
     if (!this.isModified("password")) {

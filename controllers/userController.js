@@ -103,12 +103,8 @@ exports.registerUser = async (req, res) => {
         email: user.email,
        
       });
-    const userData = await User.findById(user._id).lean(); // Convert Mongoose Document to plain JavaScript object
-    if (user_type === "company") {
-      userData.company = await Company.findOne({ user_id: user._id });
-    } else if (user_type === "jobseeker") {
-      userData.jobseeker = await Jobseeker.findOne({ user_id: user._id });
-    }
+    // Convert Mongoose Document to plain JavaScript object
+    const userData = await User.findById(user._id).lean().populate(user.user_type);
 
     res
       .status(200)
@@ -131,7 +127,8 @@ exports.getUserByEmail = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json(user);
+    const populatedUser = await User.fetchUserData(user.id);
+    res.status(200).json(populatedUser);
   } catch (err) {
     console.error("Error:", err);
     res
@@ -148,7 +145,8 @@ exports.getUserById = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
-    res.status(200).json(user);
+    const populatedUser = await User.fetchUserData(user.id);
+    res.status(200).json(populatedUser);
   } catch (err) {
     console.error("Error:", err);
     res
@@ -168,7 +166,6 @@ exports.loginUser = async (req, res) => {
 
     // Check if the user exists
     const user = await User.findOne({ email });
-    console.log(user);
     if (!user) {
       return res.status(400).json({ message: "Invalid credentials" });
     }
@@ -184,9 +181,10 @@ exports.loginUser = async (req, res) => {
       expiresIn: "1d", // Token expires in 1 day
     });
 
+    const populatedUser = await User.fetchUserData(user.id);
     res.status(200).json({
       token,
-      user: { id: user._id, name: user.name, email: user.email },
+      user: populatedUser,
     });
   } catch (err) {
     console.error("Error:", err);
